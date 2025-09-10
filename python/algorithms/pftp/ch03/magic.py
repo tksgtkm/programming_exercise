@@ -50,6 +50,8 @@ deck = ['A_C', 'A_D', 'A_H', 'A_S', '2_C', '2_D', '2_H', '2_S', '3_C', '3_D', '3
         '10_C', '10_D', '10_H', '10_S', 'J_C', 'J_D', 'J_H', 'J_S',
         'Q_C', 'Q_D', 'Q_H', 'Q_S', 'K_C', 'K_D', 'K_H', 'K_S']
 
+
+# 助手の作業のコーディング
 def AssistantOrdersCards():
 
     print('Cards are character strings as shown below')
@@ -85,24 +87,33 @@ def AssistantOrdersCards():
         if numsuits[n % 4] > 1:
             pairsuit = n % 4
 
+    # 同じpairsuitの2枚のカードを決定する
     cardh = []
     for i in range(5):
         if cardsuits[i] == pairsuit:
             cardh.append(i)
 
+    # 2枚のカードのどちらを隠し、どちらを最初にマジシャンに示すかを決定する
+    # 同時に残り3枚のカードで示す数も決定する
     hidden, other, encode = outputFirstCard(cnumbers, cardh, cards)
 
-    reminders = []
+    # 5枚のカードから最初のと隠しておくのを取り除き、
+    # 残りをリストremindicesに格納する
+    remindices = []
     for i in range(5):
         if i != hidden and i != other:
-            reminders.append(cind[i])
+            remindices.append(cind[i])
     
-    sortList(reminders)
+    # remindicesのインデックスを昇順にソートする
+    sortList(remindices)
 
-    outputNext3Cards(encode, reminders)
+    # 変数encodeに格納されている表したい数を示すようにカードの順番を決める
+    outputNext3Cards(encode, remindices)
 
     return
 
+# 2枚のカードのうちどちらを隠しておくかを決める。
+# 1から6までの数と2枚のカードを選ぶ
 def outputFirstCard(numbers, oneTwo, cards):
     encode = (numbers[oneTwo[0]] - numbers[oneTwo[1]]) % 13
     if encode > 0 and encode <= 6:
@@ -114,6 +125,7 @@ def outputFirstCard(numbers, oneTwo, cards):
         encode = (numbers[oneTwo[1]] - numbers[oneTwo[0]]) % 13
 
     print('First card is:', cards[other])
+    # 隠しておくカード、最初に示すカード、伝える数値
     return hidden, other, encode
 
 def outputNext3Cards(code, ind):
@@ -141,4 +153,93 @@ def sortList(tlist):
             if tlist[ismall] > tlist[i]:
                 ismall = i
         tlist[index], tlist[ismall] = tlist[ismall], tlist[index]
+    return
+
+# マジシャンの作業のコーディング
+# 正しく並べられた4枚のカードを引数にとり、隠されたカードを出力する
+def MagicianGauessesCard():
+    print('Cards are character strings as shown below')
+    print('Ordering is:', deck)
+    cards, cind = [], []
+    for i in range(4):
+        print('Please give card', i+1, end=' ')
+        card = input('in above format:')
+        cards.append(card)
+        n = deck.index(card)
+        cind.append(n)
+        # 隠されたカードのスートを求め、最初のカードの数値を得る
+        # (1 ~ 13の値の間)
+        if i == 0:
+            suit = n % 4
+            number = n // 4
+
+    # 2枚目、3枚目、4枚目のカード数値の順序から
+    # 最初のカードから隠されたカードまでの差を求める
+    if cind[1] < cind[2] and cind[1] < cind[3]:
+        if cind[2] < cind[3]:
+            encode = 1
+        else:
+            encode = 2
+    elif ((cind[1] < cind[2] and cind[1] > cind[3]) or (cind[1] > cind[2] and cind[1] < cind[3])):
+        if cind[2] < cind[3]:
+            encode = 3
+        else:
+            encode = 4
+    elif cind[1] > cind[2] and cind[1] > cind[3]:
+        if cind[2] < cind[3]:
+            encode = 5
+        else:
+            encode = 6
+    # 隠されたスートが何かを求める
+    hiddennumber = (number + encode) % 13
+    index = hiddennumber * 4 + suit
+
+    print('Hidden card is:', deck[index])
+
+# AssistantOrdersCards()
+
+# MagicianGauessesCard()
+
+def ComputerAssistant():
+
+    print('Cards are character strings as shown below')
+    print('Ordering is:', deck)
+    cards, cind, cardsuits, cnumbers = [], [], [], []
+    numsuits = [0, 0, 0, 0]
+    number = 0
+    while number < 99999:
+        number = int(input('Please give random number of at least 6 digits:'))
+    
+    for i in range(5):
+        number = number * (i + 1) // (i + 2)
+        n = number % 52
+        cards.append(deck[n])
+        cind.append(n)
+        cardsuits.append(n % 4)
+        cnumbers.append(n // 4)
+        numsuits[n % 4] += 1
+        if numsuits[n % 4] > 1:
+            pairsuit = n % 4
+
+    cardh = []
+    for i in range(5):
+        if cardsuits[i] == pairsuit:
+            cardh.append(i)
+
+    hidden, other, encode = outputFirstCard(cnumbers, cardh, cards)
+
+    remindices = []
+    for i in range(5):
+        if i != hidden and i != other:
+            remindices.append(cind[i])
+
+    sortList(remindices)
+    outputNext3Cards(encode, remindices)
+
+    guess = input('What is the hidden card?')
+    if guess == cards[hidden]:
+        print('You are a Mind Reader Extraordinaire!')
+    else:
+        print('Sorry, not impressed!')
+
     return
