@@ -9,7 +9,7 @@ typedef struct {
 
 void pq_init(priority_queue *q);
 int pq_parent(int n);
-int pq_young_child(priority_queue *q, int i, int j);
+int pq_young_child(int n);
 void pq_swap(priority_queue *q, int i, int j);
 void bubble_up(priority_queue *q, int p);
 void bubble_down(priority_queue *q, int p);
