@@ -33,7 +33,7 @@ item_type dequeue(queue *q) {
     return x;
 }
 
-item_type heapq(queue *q) {
+item_type headq(queue *q) {
     return q->q[q->first];
 }
 

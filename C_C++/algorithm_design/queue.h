@@ -12,6 +12,6 @@ typedef struct {
 void init_queue(queue *q);
 void enqueue(queue *q, item_type x);
 item_type dequeue(queue *q);
-item_type heapq(queue *q);
+item_type headq(queue *q);
 int empty_queue(queue *q);
 void print_queue(queue *q);
