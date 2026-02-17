@@ -12,7 +12,7 @@ int pq_parent(int n) {
         return -1;
     }
 
-    return (int)n / 2;
+    return ((int)n / 2);
 }
 
 int pq_young_child(int n) {
@@ -77,6 +77,7 @@ item_type extract_min(priority_queue *q) {
         printf("Warning: empty priority queue.\n");
     } else {
         min = q->q[1];
+        q->q[1] = q->q[q->n];
         q->n = q->n - 1;
         bubble_down(q, 1);
     }

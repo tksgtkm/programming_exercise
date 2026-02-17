@@ -1,12 +1,33 @@
-all: list tree
+MAKEFILE = Makefile
 
-OPTS = -g -Wall -Wno-pointer-sign
+SOURCES = list.c binary_tree.c sorting.c priority_queue.c random.c \
+		queue.c
 
-list: list.c list.h bool.h item.h
-		gcc -o list $(OPTS) list.c
+OBJECTS = list.o binary_tree.o sorting.o priority_queue.o random.o \
+		queue.o
 
-tree: binary_tree.c tree.h item.h bool.h
-		gcc -o tree $(OPTS) binary_tree.c
+BINARIES = list binary_tree sorting
+
+INCLUDES = bool.h item.h list.h priority_queue.h queue.h random.h tree.h
+
+CC = gcc
+CFLAGS = -ggdb
+LFLAGS = -lm
+
+make: $(BINARIES)
+
+$(OBJECTS):		$(INCLUDES)
+
+$(OBJECTS):		$(MAKEFILE)
+
+all:	$(BINARIES)
+
+sorting: random.o queue.o priority_queue.o sorting.o
+	$(CC) -o $@ random.o queue.o priority_queue.o sorting.o $(LFLAGS)
+
+lint:
+	lint -h $(SOURCES)priority_queue
 
 clean:
-	rm -f list
+	rm -f core *.o a.out $(BINARIES)
+	rm -f ./tests/*.o
