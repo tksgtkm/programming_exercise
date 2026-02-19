@@ -25,9 +25,12 @@ all:	$(BINARIES)
 sorting: random.o queue.o priority_queue.o sorting.o
 	$(CC) -o $@ random.o queue.o priority_queue.o sorting.o $(LFLAGS)
 
-lint:
-	lint -h $(SOURCES)priority_queue
+tree: binary_tree.o
+	$(CC) -o $@ binary_tree.o $(LFLAGS)
 
+lint:
+	lint -h $(SOURCES)
+	
 clean:
 	rm -f core *.o a.out $(BINARIES)
 	rm -f ./tests/*.o
