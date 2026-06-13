@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package greeter.v1;
+
+option go_package = "example.com/grpc-go-sample/gen/greeterpb";
+
+// シンプルな挨拶サービス
+service Greeter {
+  // Unary RPC: 1リクエスト -> 1レスポンス
+  rpc SayHello(HelloRequest) returns (HelloReply);
+
+  // Server Streaming RPC: 1リクエスト -> 複数レスポンス
+  rpc SayHelloStream(HelloRequest) returns (stream HelloReply);
+}
+
+message HelloRequest {
+  string name = 1;
+}
+
+message HelloReply {
+  string message = 1;
+}
