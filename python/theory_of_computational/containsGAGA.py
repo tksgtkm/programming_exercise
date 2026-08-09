@@ -23,5 +23,5 @@ def testContainsGAGA():
 
 # testContainsGAGA()
 
-longstring = readFile('data/geneticString.txt')
-print('long string result: ', containsGAGA(longstring))
+# longstring = readFile('data/geneticString.txt')
+# print('long string result: ', containsGAGA(longstring))
