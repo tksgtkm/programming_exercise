@@ -436,7 +436,153 @@ class GraphicEnvironment(XYEnvironment):
         display(HTML(''))
 
 # ______________________________________________________________________________
+# Continuous environment
+
+class ContinuousWorld(Environment):
+
+    def __init__(self, width=10, height=10):
+        super().__init__()
+        self.width = width
+        self.height = height
+
+    def add_obstacle(self, coodinates):
+        self.things.append(PolygonObstacle(coodinates))
+
+class PolygonObstacle(Obstacle):
+
+    def __init__(self, coodinates):
+        super().__init__()
+        self.coodinates = coodinates
+
+# ______________________________________________________________________________
 # The Wumpus World
+
+class Gold(Thing):
+    def __eq__(self, rhs):
+        return rhs.__class__ == Gold
+
+    pass
 
 class Bump(Thing):
     pass
+
+class Glitter(Thing):
+    pass
+
+class Pit(Thing):
+    pass
+
+class Breeze(Thing):
+    pass
+
+class Arrow(Thing):
+    pass
+
+class Scream(Thing):
+    pass
+
+class Wumpus(Thing):
+    pass
+
+class Stench(Thing):
+    pass
+
+class Explorer(Agent):
+
+    holding = []
+    has_arrow = True
+    killed_by = ""
+    direction = Direction("right")
+
+    def can_grab(self, thing):
+        return thing.__class__ == Gold
+
+class WumpusEnvironment(XYEnvironment):
+
+    pit_probability = 0.2
+
+    def __init__(self, agent_program, width=6, height=6):
+        super().__init__(width, height)
+
+    def init_world(self, program):
+
+        "WALLS"
+        self.add_walls()
+
+        "PITS"
+        for x in range(self.x_start, self.x_end):
+            for y in range(self.y_start, self.y_end):
+                if random.random() < self.pit_probability:
+                    self.add_thing(Pit(), (x, y), True)
+                    self.add_thing(Breeze(), (x - 1, y), True)
+                    self.add_thing(Breeze(), (x, y - 1), True)
+                    self.add_thing(Breeze(), (x + 1, y), True)
+                    self.add_thing(Breeze(), (x, y + 1), True)
+
+        "WUMPUS"
+        w_x, w_y = self.random_location_inbounds(exclude=(1, 1))
+        self.add_thing(Wumpus(lambda x: ""), (w_x, w_y), True)
+        self.add_thing(Stench(), (w_x - 1, w_y), True)
+        self.add_thing(Stench(), (w_x + 1, w_y), True)
+        self.add_thing(Stench(), (w_x, w_y - 1), True)
+        self.add_thing(Stench(), (w_x, w_y + 1), True)
+
+        "GOLD"
+        self.add_thing(Gold(), self.random_location_inbounds(exclude=(1, 1)), True)
+
+        "AGENT"
+        self.add_thing(Explorer(program), (1, 1), True)
+
+    def get_world(self, show_walls=True):
+        result = []
+        x_start, y_start = (0, 0) if show_walls else (1, 1)
+
+        if show_walls:
+            x_end, y_end = self.width, self.height
+        else:
+            x_end, y_end = self.width - 1, self.height - 1
+
+        for x in range(x_start, x_end):
+            row = []
+            for y in range(y_start, y_end):
+                row.append(self.list_things_at((x, y)))
+            result.append(row)
+        return result
+
+    def percepts_from(self, agent, location, tclass=Thing):
+        thing_percepts = {
+            Gold: Glitter(),
+            Wall: Bump(),
+            Wumpus: Stench(),
+            Pit: Breeze()
+        }
+
+        thing_percepts[agent.__class__] = None
+
+        if location != agent.location:
+            thing_percepts[Gold] = None
+
+        result = [
+            thing_percepts.get(thing.__class__, thing) for thing in self.things
+            if thing.location == location and isinstance(thing, tclass)
+        ]
+
+        return result if len(result) else [None]
+
+    def percept(self, agent):
+        x, y = agent.location
+        result = []
+        result.append(self.percepts_from(agent, (x - 1, y)))
+        result.append(self.percepts_from(agent, (x + 1, y)))
+        result.append(self.percepts_from(agent, (x, y - 1)))
+        result.append(self.percepts_from(agent, (x, y + 1)))
+        result.append(self.percepts_from(agent, (x, y)))
+
+        wumpus = [thing for thing in self.things if isinstance(thing, Wumpus)]
+        if len(wumpus) and not wumpus[0].alive and not wumpus[0].screamed:
+            result[-1].append(Scream())
+            wumpus[0].screamed = True
+
+        return result
+
+    
