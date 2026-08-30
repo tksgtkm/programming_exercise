@@ -585,4 +585,48 @@ class WumpusEnvironment(XYEnvironment):
 
         return result
 
-    
+    def execute_action(self, agent, action):
+        if isinstance(agent, Explorer) and self.in_danger(agent):
+            return
+
+        agent.bump = False
+        if action in ['TurnRight', 'TurnLeft', 'Forward', 'Grab']:
+            super().execute_action(agent, action)
+            agent.performance -= 1
+        elif action == 'Climb':
+            if agent.location == (1, 1):
+                agent.performance += 1000 if Gold() in agent.holding else 0
+                self.delete_thing(agent)
+        elif action == 'Shoot':
+            if agent.has_arrow:
+                arrow_travel = agent.direction.move_forward(agent.location)
+                while self.is_inbounds(arrow_travel):
+                    wumpus = [
+                        thing for thing in self.list_things_at(arrow_travel)
+                        if isinstance(thing, Wumpus)
+                    ]
+                    if len(wumpus):
+                        wumpus[0].alive = False
+                        break
+                    arrow_travel = agent.direction.move_forward(agent.location)
+                agent.has_arrow = False
+
+    def in_danger(self, agent):
+        for thing in self.list_things_at(agent.location):
+            if isinstance(thing, Pit) or (isinstance(thing, Wumpus) and thing.alive):
+                agent.alive = False
+                agent.performance -= 1000
+                agent.killed_by = thing.__class__.__name__
+                return True
+        return False
+
+    def is_done(self):
+        explorer = [agent for agent in self.agents if isinstance(agent, Explorer)]
+        if len(explorer):
+            if explorer[0].alive:
+                return False
+            else:
+                print("Death by {} [-1000].".format(explorer[0].killed_by))
+        else:
+            print("Explorer climbed out {}.".format("with Gold [+1000]!" if Gold() not in self.things else "without Gold [+0]"))
+        return True
